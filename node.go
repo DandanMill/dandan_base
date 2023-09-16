@@ -16,6 +16,7 @@ func (n *node) put(oldKey, key, value []byte) {
 	index := sort.Search(len(n.kvs), func(i int) bool { return bytes.Compare(n.kvs[i].key, oldKey) != -1 })
 
 	exact := len(n.kvs) > 0 && index < len(n.kvs) && bytes.Equal(n.kvs[index].key, oldKey)
+
 	if !exact {
 		n.kvs = append(n.kvs, kv{})
 		copy(n.kvs[index+1:], n.kvs[index:])
@@ -40,15 +41,13 @@ func (n *node) insertInternal(children []*node) {
 func (n *node) splitNode() *node {
 	half := len(n.kvs) >> 1
 	newNode := &node{
-		isLeaf:   n.isLeaf,
-		kvs:      make(kvs, 0),
-		children: make(nodes, 0),
+		isLeaf: n.isLeaf,
 	}
 
 	newNode.kvs = n.kvs[half:]
 	n.kvs = n.kvs[:half]
 
-	half = len(n.kvs) >> 1
+	half = len(n.children) >> 1
 	newNode.children = n.children[half:]
 	n.children = n.children[:half]
 
