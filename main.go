@@ -1,19 +1,17 @@
 package main
 
-import (
-	"fmt"
-)
+import "fmt"
 
 func main() {
-	t := tree{}
 
-	t.put([]byte("3"), []byte("3"))
-	t.put([]byte("5"), []byte("5"))
-	t.put([]byte("1"), []byte("1"))
-	t.put([]byte("2"), []byte("2"))
-	fmt.Println(t.root.kvs)
-	for _, n := range t.root.children {
-		fmt.Println(n)
-	}
+	tree := tree{}
 
+	tree.put([]byte("3"), []byte("4"))
+	tree.put([]byte("5"), []byte("3"))
+	tree.put([]byte("4"), []byte("1"))
+	tree.put([]byte("8"), []byte("2"))
+	tree.put([]byte("2"), []byte("9"))
+	tree.put([]byte("9"), []byte("8"))
+
+	fmt.Printf("%s", tree.get([]byte("8")))
 }

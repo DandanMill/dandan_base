@@ -7,51 +7,67 @@ import (
 
 type node struct {
 	isLeaf   bool
+	parent   *node
 	kvs      kvs
-	children nodes
+	children []*node
 }
 
-func (n *node) put(oldKey, key, value []byte) {
+func (n *node) put(key, value []byte) {
+	index := sort.Search(len(n.kvs), func(i int) bool {
+		return bytes.Compare(n.kvs[i].key, key) > 0
+	})
 
-	index := sort.Search(len(n.kvs), func(i int) bool { return bytes.Compare(n.kvs[i].key, oldKey) != -1 })
-
-	exact := len(n.kvs) > 0 && index < len(n.kvs) && bytes.Equal(n.kvs[index].key, oldKey)
-
+	exact := len(n.kvs) > 0 && index < len(n.kvs) && bytes.Equal(n.kvs[index].key, key)
 	if !exact {
 		n.kvs = append(n.kvs, kv{})
 		copy(n.kvs[index+1:], n.kvs[index:])
 	}
-
 	kv := &n.kvs[index]
 	kv.key = key
 	kv.value = value
 }
 
-func (n *node) insertInternal(children []*node) {
+func (n *node) internalPut(child *node) {
+	key := child.kvs[0].key
+	n.put(key, nil)
 
-	lastNode := children[len(children)-1]
-	key := lastNode.kvs[0].key
-	n.put(key, key, nil)
-
-	for _, child := range children {
-		n.children = append(n.children, child)
+	index := sort.Search(len(n.kvs), func(i int) bool {
+		return bytes.Compare(n.kvs[i].key, key) == 1
+	})
+	n.children = append(n.children, &node{})
+	if index < len(n.children)-1 {
+		copy(n.children[index+1:], n.children[index:])
 	}
+	child.parent = n
+	n.children[index] = child
 }
 
-func (n *node) splitNode() *node {
+func (n *node) splitNode() (newNode *node) {
 	half := len(n.kvs) >> 1
-	newNode := &node{
+
+	newNode = &node{
 		isLeaf: n.isLeaf,
 	}
+	if len(n.kvs)%2 == 0 {
+		newNode.kvs = make(kvs, len(n.kvs)-half)
+	} else {
+		newNode.kvs = make(kvs, len(n.kvs)-half+1)
+	}
 
-	newNode.kvs = n.kvs[half:]
+	if newNode.isLeaf {
+		copy(newNode.kvs, n.kvs[half:])
+	} else {
+		copy(newNode.kvs, n.kvs[half+1:])
+	}
 	n.kvs = n.kvs[:half]
 
 	half = len(n.children) >> 1
-	newNode.children = n.children[half:]
+	newNode.children = make([]*node, half)
+
+	copy(newNode.children, n.children[half:])
 	n.children = n.children[:half]
 
-	return newNode
+	return
 }
 
 type nodes []*node

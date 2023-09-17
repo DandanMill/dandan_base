@@ -5,7 +5,7 @@ import (
 	"sort"
 )
 
-const MAX_DEGREE = 3
+const MAX = 3
 
 type tree struct {
 	root *node
@@ -17,38 +17,46 @@ func (t *tree) put(key, value []byte) {
 			isLeaf: true,
 		}
 	}
-	cursor := t.searchNode(key)
-	cursor.put(key, key, value)
+	cursor := &cursor{current: t.root}
+	cursor.searchNode(key)
 
-	if len(cursor.kvs) == MAX_DEGREE {
-		next := cursor.splitNode()
-		if cursor == t.root {
-			newRoot := &node{
-				isLeaf: false,
-			}
+	current := cursor.current
+	current.put(key, value)
 
-			newRoot.insertInternal([]*node{cursor, next})
+	for len(current.kvs) == MAX {
+		key := current.kvs[len(current.kvs)>>1].key
+
+		next := current.splitNode()
+		if t.root == current {
+			newRoot := &node{isLeaf: false}
+			newRoot.put(key, nil)
+
+			newRoot.children = append(newRoot.children, []*node{current, next}...)
+			current.parent = newRoot
+			next.parent = newRoot
 
 			t.root = newRoot
+		} else {
+			parent := current.parent
+			parent.internalPut(next)
+			current = parent
 		}
 	}
 }
 
-func (t *tree) searchNode(key []byte) *node {
-	cursor := t.root
-	for !cursor.isLeaf {
-		var exact bool
-		index := sort.Search(len(cursor.kvs), func(i int) bool {
-			ret := bytes.Compare(cursor.kvs[i].key, key)
-			if bytes.Equal(cursor.kvs[i].key, key) {
-				exact = true
-			}
-			return ret != -1
-		})
-		if exact {
-			index++
-		}
-		cursor = cursor.children[index]
+func (t *tree) get(key []byte) []byte {
+	cursor := &cursor{current: t.root}
+	cursor.searchNode(key)
+
+	node := cursor.current
+
+	index := sort.Search(len(node.kvs), func(i int) bool {
+		return bytes.Compare(node.kvs[i].key, key) != -1
+	})
+
+	if bytes.Equal(cursor.current.kvs[index].key, key) {
+		return cursor.current.kvs[index].value
 	}
-	return cursor
+
+	return nil
 }
