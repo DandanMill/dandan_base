@@ -9,7 +9,7 @@ type node struct {
 	isLeaf   bool
 	parent   *node
 	kvs      kvs
-	children []*node
+	children nodes
 }
 
 func (n *node) put(key, value []byte) {
