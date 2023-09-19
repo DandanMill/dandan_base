@@ -4,13 +4,19 @@ import (
 	"encoding/csv"
 	"fmt"
 	"log"
+	"math/rand"
 	"os"
+	"time"
 )
 
 func main() {
 	tree := mock_data()
+	rand.NewSource(time.Now().Unix())
 
-	fmt.Printf("%s", tree.get([]byte("150")))
+	for i := 0; i < 30; i++ {
+		key := []byte(fmt.Sprintf("%d", rand.Intn(100)))
+		fmt.Printf("%s -> %s\n", key, tree.get(key))
+	}
 }
 
 func mock_data() *tree {

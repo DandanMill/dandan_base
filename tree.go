@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"sort"
 )
 
@@ -62,14 +61,13 @@ func (t *tree) get(key []byte) []byte {
 		return bytes.Compare(node.kvs[i].key, key) != -1
 	})
 
-	if index > len(node.kvs)-1 {
-		fmt.Println("No such key")
-		return nil
+	if index > len(node.kvs)-1 || index < 0 {
+		return []byte("No such key")
 	}
 
 	if bytes.Equal(node.kvs[index].key, key) {
 		return node.kvs[index].value
 	}
 
-	return nil
+	return []byte("No such key")
 }

@@ -65,9 +65,6 @@ func (n *node) splitNode() (newNode *node) {
 		half++
 	}
 	newNode.children = append(newNode.children, n.children[half:]...)
-	// for _, child := range newNode.children {
-	// 	child.parent = newNode
-	// }
 	n.children = n.children[:half]
 
 	return
