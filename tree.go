@@ -24,7 +24,11 @@ func (t *tree) put(key, value []byte) {
 	current := cursor.current
 	current.put(key, value)
 
+	stackPointer := len(cursor.stack)
+	iterationCount := 1
+
 	for len(current.kvs) == MAX {
+
 		middleKey := make([]byte, len(current.kvs[len(current.kvs)>>1].key))
 		copy(middleKey, current.kvs[len(current.kvs)>>1].key)
 
@@ -40,10 +44,10 @@ func (t *tree) put(key, value []byte) {
 
 			t.root = newRoot
 		} else {
-			parent := current.parent
-			next.parent = parent
+			parent := cursor.stack[stackPointer-iterationCount]
 			parent.internalPut(next, middleKey)
 			current = parent
+			iterationCount++
 		}
 	}
 }
