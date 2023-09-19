@@ -14,7 +14,7 @@ type node struct {
 
 func (n *node) put(key, value []byte) {
 	index := sort.Search(len(n.kvs), func(i int) bool {
-		return bytes.Compare(n.kvs[i].key, key) > 0
+		return bytes.Compare(n.kvs[i].key, key) != -1
 	})
 
 	exact := len(n.kvs) > 0 && index < len(n.kvs) && bytes.Equal(n.kvs[index].key, key)
@@ -27,44 +27,47 @@ func (n *node) put(key, value []byte) {
 	kv.value = value
 }
 
-func (n *node) internalPut(child *node) {
-	key := child.kvs[0].key
+func (n *node) internalPut(child *node, key []byte) {
 	n.put(key, nil)
 
 	index := sort.Search(len(n.kvs), func(i int) bool {
 		return bytes.Compare(n.kvs[i].key, key) == 1
 	})
+
 	n.children = append(n.children, &node{})
 	if index < len(n.children)-1 {
 		copy(n.children[index+1:], n.children[index:])
 	}
-	child.parent = n
+
 	n.children[index] = child
 }
 
 func (n *node) splitNode() (newNode *node) {
-	half := len(n.kvs) >> 1
+
+	half := len(n.kvs) / 2
 
 	newNode = &node{
 		isLeaf: n.isLeaf,
 	}
-	if len(n.kvs)%2 == 0 {
-		newNode.kvs = make(kvs, len(n.kvs)-half)
-	} else {
-		newNode.kvs = make(kvs, len(n.kvs)-half+1)
-	}
 
 	if newNode.isLeaf {
-		copy(newNode.kvs, n.kvs[half:])
-	} else {
-		copy(newNode.kvs, n.kvs[half+1:])
+		newNode.kvs = append(newNode.kvs, n.kvs[half:]...)
+		n.kvs = n.kvs[:half]
+		return
+
 	}
+	newNode.kvs = append(newNode.kvs, n.kvs[half+1:]...)
 	n.kvs = n.kvs[:half]
 
-	half = len(n.children) >> 1
-	newNode.children = make([]*node, half)
+	half = len(n.children) / 2
 
-	copy(newNode.children, n.children[half:])
+	if MAX%2 == 0 {
+		half++
+	}
+	newNode.children = append(newNode.children, n.children[half:]...)
+	for _, child := range newNode.children {
+		child.parent = newNode
+	}
 	n.children = n.children[:half]
 
 	return

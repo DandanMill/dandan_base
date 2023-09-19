@@ -2,10 +2,11 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"sort"
 )
 
-const MAX = 3
+const MAX = 5
 
 type tree struct {
 	root *node
@@ -24,12 +25,14 @@ func (t *tree) put(key, value []byte) {
 	current.put(key, value)
 
 	for len(current.kvs) == MAX {
-		key := current.kvs[len(current.kvs)>>1].key
+		middleKey := make([]byte, len(current.kvs[len(current.kvs)>>1].key))
+		copy(middleKey, current.kvs[len(current.kvs)>>1].key)
 
 		next := current.splitNode()
+
 		if t.root == current {
 			newRoot := &node{isLeaf: false}
-			newRoot.put(key, nil)
+			newRoot.put(middleKey, nil)
 
 			newRoot.children = append(newRoot.children, []*node{current, next}...)
 			current.parent = newRoot
@@ -38,7 +41,8 @@ func (t *tree) put(key, value []byte) {
 			t.root = newRoot
 		} else {
 			parent := current.parent
-			parent.internalPut(next)
+			next.parent = parent
+			parent.internalPut(next, middleKey)
 			current = parent
 		}
 	}
@@ -54,8 +58,13 @@ func (t *tree) get(key []byte) []byte {
 		return bytes.Compare(node.kvs[i].key, key) != -1
 	})
 
-	if bytes.Equal(cursor.current.kvs[index].key, key) {
-		return cursor.current.kvs[index].value
+	if index > len(node.kvs)-1 {
+		fmt.Println("No such key")
+		return nil
+	}
+
+	if bytes.Equal(node.kvs[index].key, key) {
+		return node.kvs[index].value
 	}
 
 	return nil

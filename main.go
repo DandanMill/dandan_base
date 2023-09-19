@@ -1,17 +1,35 @@
 package main
 
-import "fmt"
+import (
+	"encoding/csv"
+	"fmt"
+	"log"
+	"os"
+)
 
 func main() {
+	tree := mock_data()
 
-	tree := tree{}
+	fmt.Printf("%s", tree.get([]byte("150")))
+}
 
-	tree.put([]byte("3"), []byte("4"))
-	tree.put([]byte("5"), []byte("3"))
-	tree.put([]byte("4"), []byte("1"))
-	tree.put([]byte("8"), []byte("2"))
-	tree.put([]byte("2"), []byte("9"))
-	tree.put([]byte("9"), []byte("8"))
+func mock_data() *tree {
+	f, err := os.Open("MOCK_DATA.csv")
 
-	fmt.Printf("%s", tree.get([]byte("8")))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+
+	csvReader := csv.NewReader(f)
+	data, err := csvReader.ReadAll()
+	if err != nil {
+		log.Fatal(err)
+	}
+	tree := &tree{}
+
+	for _, str := range data {
+		tree.put([]byte(str[0]), []byte(str[1]))
+	}
+	return tree
 }
