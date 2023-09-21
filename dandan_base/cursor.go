@@ -1,4 +1,4 @@
-package main
+package dandan_base
 
 import (
 	"bytes"

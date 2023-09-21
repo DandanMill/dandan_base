@@ -1,4 +1,4 @@
-package main
+package dandan_base
 
 import (
 	"bytes"
@@ -8,6 +8,7 @@ import (
 type node struct {
 	isLeaf   bool
 	parent   *node
+	sibling  *node
 	kvs      kvs
 	children nodes
 }
@@ -53,6 +54,8 @@ func (n *node) splitNode() (newNode *node) {
 	if newNode.isLeaf {
 		newNode.kvs = append(newNode.kvs, n.kvs[half:]...)
 		n.kvs = n.kvs[:half]
+		newNode.sibling = n.sibling
+		n.sibling = newNode
 		return
 
 	}

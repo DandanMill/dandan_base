@@ -7,6 +7,8 @@ import (
 	"math/rand"
 	"os"
 	"time"
+
+	"github.com/DandanMill/dandan-base/v1/dandan_base"
 )
 
 func main() {
@@ -15,11 +17,11 @@ func main() {
 
 	for i := 0; i < 30; i++ {
 		key := []byte(fmt.Sprintf("%d", rand.Intn(100)))
-		fmt.Printf("%s -> %s\n", key, tree.get(key))
+		fmt.Printf("%s -> %s\n", key, tree.Get(key))
 	}
 }
 
-func mock_data() *tree {
+func mock_data() *dandan_base.Tree {
 	f, err := os.Open("MOCK_DATA.csv")
 
 	if err != nil {
@@ -32,10 +34,10 @@ func mock_data() *tree {
 	if err != nil {
 		log.Fatal(err)
 	}
-	tree := &tree{}
+	tree := &dandan_base.Tree{}
 
 	for _, str := range data {
-		tree.put([]byte(str[0]), []byte(str[1]))
+		tree.Put([]byte(str[0]), []byte(str[1]))
 	}
 	return tree
 }

@@ -1,4 +1,4 @@
-package main
+package dandan_base
 
 import (
 	"bytes"
@@ -7,11 +7,11 @@ import (
 
 const MAX = 5
 
-type tree struct {
+type Tree struct {
 	root *node
 }
 
-func (t *tree) put(key, value []byte) {
+func (t *Tree) Put(key, value []byte) {
 	if t.root == nil {
 		t.root = &node{
 			isLeaf: true,
@@ -51,7 +51,7 @@ func (t *tree) put(key, value []byte) {
 	}
 }
 
-func (t *tree) get(key []byte) []byte {
+func (t *Tree) Get(key []byte) []byte {
 	cursor := &cursor{current: t.root}
 	cursor.searchNode(key)
 
