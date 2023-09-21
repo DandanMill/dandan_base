@@ -13,7 +13,7 @@ type node struct {
 	children nodes
 }
 
-func (n *node) put(key, value []byte) {
+func (n *node) put(key, value []byte, pgid pgid) {
 	index := sort.Search(len(n.kvs), func(i int) bool {
 		return bytes.Compare(n.kvs[i].key, key) != -1
 	})
@@ -26,10 +26,11 @@ func (n *node) put(key, value []byte) {
 	kv := &n.kvs[index]
 	kv.key = key
 	kv.value = value
+	kv.pgid = pgid
 }
 
 func (n *node) internalPut(child *node, key []byte) {
-	n.put(key, nil)
+	n.put(key, nil, 0)
 
 	index := sort.Search(len(n.kvs), func(i int) bool {
 		return bytes.Compare(n.kvs[i].key, key) == 1
@@ -73,11 +74,16 @@ func (n *node) splitNode() (newNode *node) {
 	return
 }
 
+func (n *node) write(p *page) {
+
+}
+
 type nodes []*node
 
 type kv struct {
 	key   []byte
 	value []byte
+	pgid  pgid
 }
 
 type kvs []kv

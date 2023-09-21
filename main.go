@@ -4,24 +4,22 @@ import (
 	"encoding/csv"
 	"fmt"
 	"log"
-	"math/rand"
 	"os"
-	"time"
 
 	"github.com/DandanMill/dandan-base/v1/dandan_base"
 )
 
 func main() {
-	tree := mock_data()
-	rand.NewSource(time.Now().Unix())
+	db := mock_data()
 
-	for i := 0; i < 30; i++ {
-		key := []byte(fmt.Sprintf("%d", rand.Intn(100)))
-		fmt.Printf("%s -> %s\n", key, tree.Get(key))
-	}
+	db.Write()
+
+	p := db.Read()
+
+	fmt.Printf("%+v", p)
 }
 
-func mock_data() *dandan_base.Tree {
+func mock_data() *dandan_base.DB {
 	f, err := os.Open("MOCK_DATA.csv")
 
 	if err != nil {
@@ -39,5 +37,5 @@ func mock_data() *dandan_base.Tree {
 	for _, str := range data {
 		tree.Put([]byte(str[0]), []byte(str[1]))
 	}
-	return tree
+	return &dandan_base.DB{Bucket: tree}
 }

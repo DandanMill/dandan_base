@@ -5,7 +5,9 @@ import (
 	"sort"
 )
 
-const MAX = 5
+const MaxAllocSize = 0xFFFFFFF
+
+const MAX = 100
 
 type Tree struct {
 	root *node
@@ -21,7 +23,7 @@ func (t *Tree) Put(key, value []byte) {
 	cursor.searchNode(key)
 
 	current := cursor.current
-	current.put(key, value)
+	current.put(key, value, 0)
 
 	stackPointer := len(cursor.stack)
 	iterationCount := 1
@@ -35,7 +37,7 @@ func (t *Tree) Put(key, value []byte) {
 
 		if t.root == current {
 			newRoot := &node{isLeaf: false}
-			newRoot.put(middleKey, nil)
+			newRoot.put(middleKey, nil, 0)
 
 			newRoot.children = append(newRoot.children, []*node{current, next}...)
 			current.parent = newRoot
