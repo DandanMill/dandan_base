@@ -5,15 +5,21 @@ import (
 	"fmt"
 	"log"
 	"os"
+
+	"github.com/DandanMill/dandan-base/v1/dandan_base"
 )
 
 func main() {
-	tree := mock_data()
+	db := mock_data()
 
-	fmt.Printf("%s", tree.get([]byte("150")))
+	db.Write()
+
+	p := db.Read()
+
+	fmt.Printf("%+v", p)
 }
 
-func mock_data() *tree {
+func mock_data() *dandan_base.DB {
 	f, err := os.Open("MOCK_DATA.csv")
 
 	if err != nil {
@@ -26,10 +32,10 @@ func mock_data() *tree {
 	if err != nil {
 		log.Fatal(err)
 	}
-	tree := &tree{}
+	tree := &dandan_base.Tree{}
 
 	for _, str := range data {
-		tree.put([]byte(str[0]), []byte(str[1]))
+		tree.Put([]byte(str[0]), []byte(str[1]))
 	}
-	return tree
+	return &dandan_base.DB{Bucket: tree}
 }

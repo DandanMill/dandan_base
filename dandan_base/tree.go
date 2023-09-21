@@ -1,18 +1,19 @@
-package main
+package dandan_base
 
 import (
 	"bytes"
-	"fmt"
 	"sort"
 )
 
-const MAX = 5
+const MaxAllocSize = 0xFFFFFFF
 
-type tree struct {
+const MAX = 100
+
+type Tree struct {
 	root *node
 }
 
-func (t *tree) put(key, value []byte) {
+func (t *Tree) Put(key, value []byte) {
 	if t.root == nil {
 		t.root = &node{
 			isLeaf: true,
@@ -22,9 +23,13 @@ func (t *tree) put(key, value []byte) {
 	cursor.searchNode(key)
 
 	current := cursor.current
-	current.put(key, value)
+	current.put(key, value, 0)
+
+	stackPointer := len(cursor.stack)
+	iterationCount := 1
 
 	for len(current.kvs) == MAX {
+
 		middleKey := make([]byte, len(current.kvs[len(current.kvs)>>1].key))
 		copy(middleKey, current.kvs[len(current.kvs)>>1].key)
 
@@ -32,7 +37,7 @@ func (t *tree) put(key, value []byte) {
 
 		if t.root == current {
 			newRoot := &node{isLeaf: false}
-			newRoot.put(middleKey, nil)
+			newRoot.put(middleKey, nil, 0)
 
 			newRoot.children = append(newRoot.children, []*node{current, next}...)
 			current.parent = newRoot
@@ -40,15 +45,15 @@ func (t *tree) put(key, value []byte) {
 
 			t.root = newRoot
 		} else {
-			parent := current.parent
-			next.parent = parent
+			parent := cursor.stack[stackPointer-iterationCount]
 			parent.internalPut(next, middleKey)
 			current = parent
+			iterationCount++
 		}
 	}
 }
 
-func (t *tree) get(key []byte) []byte {
+func (t *Tree) Get(key []byte) []byte {
 	cursor := &cursor{current: t.root}
 	cursor.searchNode(key)
 
@@ -58,14 +63,13 @@ func (t *tree) get(key []byte) []byte {
 		return bytes.Compare(node.kvs[i].key, key) != -1
 	})
 
-	if index > len(node.kvs)-1 {
-		fmt.Println("No such key")
-		return nil
+	if index > len(node.kvs)-1 || index < 0 {
+		return []byte("No such key")
 	}
 
 	if bytes.Equal(node.kvs[index].key, key) {
 		return node.kvs[index].value
 	}
 
-	return nil
+	return []byte("No such key")
 }
